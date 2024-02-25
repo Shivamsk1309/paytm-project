@@ -6,13 +6,6 @@ const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
-const UserSchema = z.object({
-  username: z.string().email(),
-  firstName: z.string().min(3).max(50),
-  lastName: z.string().min(3).max(50),
-  password: z.string().min(6),
-});
-
 const signInBody = z.object({
   username: z.string().email(),
   password: z.string().min(6),
@@ -46,6 +39,13 @@ router.post("/signin", async (req, res) => {
   } catch (err) {
     return res.status(411).json({ error: err.message });
   }
+});
+
+const UserSchema = z.object({
+  username: z.string().email(),
+  firstName: z.string().min(3).max(50),
+  lastName: z.string().min(3).max(50),
+  password: z.string().min(6),
 });
 
 // Signup Route
@@ -83,5 +83,8 @@ router.post("/signup", async (req, res) => {
     return res.status(411).json({ error: err.message });
   }
 });
+
+// update user Route
+router.put("/", async (req, res) => {});
 
 module.exports = router;
