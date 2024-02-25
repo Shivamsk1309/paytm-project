@@ -3,6 +3,7 @@ const z = require("zod");
 const { User } = require("../db");
 const JWT_SECRET = require("../config");
 const jwt = require("jsonwebtoken");
+const { userAuthMiddleware } = require("../middlewares/user");
 
 const router = express.Router();
 
@@ -19,11 +20,9 @@ router.post("/signin", async (req, res) => {
       return res.status(411).json({ message: "Incorrect inputs" });
     }
     const { username, password } = result.data;
-    const findUser = await User.find({
-      where: {
-        username,
-        password,
-      },
+    const findUser = await User.findOne({
+      username,
+      password,
     });
     if (!findUser) {
       return res.status(411).json({
@@ -72,6 +71,7 @@ router.post("/signup", async (req, res) => {
       username,
       password,
     });
+
     const userId = { userId: newUser._id };
 
     const token = jwt.sign(userId, JWT_SECRET);
@@ -84,7 +84,33 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+const updateSchema = z.object({
+  firstName: z.string().min(3).max(50).optional(),
+  lastName: z.string().min(3).max(50).optional(),
+  password: z.string().min(6).optional(),
+});
+
 // update user Route
-router.put("/", async (req, res) => {});
+router.put("/", userAuthMiddleware, async (req, res) => {
+  try {
+    const result = updateSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(411).json({
+        message: "Error while updating information",
+      });
+    }
+
+    const updatedUser = await User.updateOne({ _id: req.userId }, result.data);
+
+    if (!updatedUser) {
+      return res.status(411).json({
+        message: "Error while updating information",
+      });
+    }
+    return res.status(200).json({ message: "User updated successfully" });
+  } catch (err) {
+    return res.status(411).json({ error: err.message });
+  }
+});
 
 module.exports = router;
