@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const z = require("zod");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -19,7 +18,7 @@ const connectDB = async () => {
 
 connectDB();
 
-const UserSchema = new Schema({
+const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
