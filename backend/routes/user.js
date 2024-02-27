@@ -111,7 +111,18 @@ router.put("/", userAuthMiddleware, async (req, res) => {
       });
     }
 
+    if (result.data.password) {
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(411).json({ message: "User not found" });
+      }
+      const hashedPassword = await user.createHash(result.data.password);
+      result.data.password_hash = hashedPassword;
+      delete result.data.password;
+    }
+    console.log("Result : ", result.data);
     const updatedUser = await User.updateOne({ _id: req.userId }, result.data);
+    console.log("User : ", updatedUser);
 
     if (!updatedUser) {
       return res.status(411).json({
