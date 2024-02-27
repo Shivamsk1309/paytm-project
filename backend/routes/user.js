@@ -19,16 +19,27 @@ router.post("/signin", async (req, res) => {
     if (!result.success) {
       return res.status(411).json({ message: "Incorrect inputs" });
     }
+
     const { username, password } = result.data;
+
     const findUser = await User.findOne({
       username,
-      password,
     });
     if (!findUser) {
       return res.status(411).json({
-        message: "Error while logging in",
+        message: "User not found",
       });
     }
+    const validationPassed = await findUser.validatePassword(
+      password,
+      findUser.password_hash
+    );
+    if (!validationPassed) {
+      return res.status(411).json({
+        message: "Incorrect password",
+      });
+    }
+
     const token = jwt.sign({ userId: findUser._id }, JWT_SECRET);
 
     return res.status(200).json({
@@ -52,25 +63,25 @@ router.post("/signup", async (req, res) => {
   try {
     const result = UserSchema.safeParse(req.body);
     if (!result.success) {
-      return res
-        .status(411)
-        .json({ message: "Email already taken / Incorrect inputs" });
+      return res.status(411).json({ message: "Incorrect inputs" });
     }
     const { username, firstName, lastName, password } = result.data;
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res
-        .status(411)
-        .json({ message: "Email already taken / Incorrect inputs" });
+      return res.status(411).json({ message: "Email already taken" });
     }
 
-    const newUser = await User.create({
+    const newUser = new User({
       firstName,
       lastName,
       username,
-      password,
     });
+
+    const hashedPassword = await newUser.createHash(password);
+    newUser.password_hash = hashedPassword;
+
+    await newUser.save();
 
     const userId = { userId: newUser._id };
 

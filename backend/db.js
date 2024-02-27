@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -33,7 +34,7 @@ const UserSchema = new mongoose.Schema({
     maxLength: 50,
     trim: true,
   },
-  password: {
+  password_hash: {
     type: String,
     required: true,
     minLength: 6,
@@ -48,6 +49,17 @@ const UserSchema = new mongoose.Schema({
     lowercase: true,
   },
 });
+
+UserSchema.methods.createHash = async (plainTextPassword) => {
+  const saltRounds = 10;
+
+  const salt = await bcrypt.genSalt(saltRounds);
+  return await bcrypt.hash(plainTextPassword, salt);
+};
+
+UserSchema.methods.validatePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password_hash);
+};
 
 const User = mongoose.model("User", UserSchema);
 module.exports = {
