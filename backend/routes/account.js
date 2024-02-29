@@ -4,7 +4,7 @@ const { User, Account } = require("../db");
 const { mongoose } = require("mongoose");
 const { userAuthMiddleware } = require("../middlewares/user");
 
-router.get("/balance", userAuthMiddleware, async (req, res) => {
+router.get("/transfer", userAuthMiddleware, async (req, res) => {
   try {
     const session = await mongoose.startSession();
     await session.startTransaction();
@@ -52,19 +52,15 @@ router.get("/balance", userAuthMiddleware, async (req, res) => {
   }
 });
 
-router.post("/transfer", userAuthMiddleware, async (req, res) => {
+router.post("/balance", userAuthMiddleware, async (req, res) => {
   try {
-    const { to, amount } = req.body;
-    const fromUserBalance = await Account.findOne({ userId: req.userId });
-    if (fromUserBalance.balance < amount) {
-      return res.status(411).json({ error: "Insufficient balance" });
-    }
-    const toAccount = await User.findOne({
-      userId: to,
+    const account = await Account.findOne({
+      userId: req.userId,
     });
-    if (!toAccount) {
-      return res.status(411).json({ error: "User not found" });
-    }
+
+    res.json({
+      balance: account.balance,
+    });
   } catch (err) {
     return res.status(411).json({ error: err.message });
   }
