@@ -5,6 +5,7 @@ import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import SendMoney from "./pages/SendMoney";
 import AppBar from "./components/AppBar";
+import Balance from "./components/Balance";
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
           <Route path="/signin" element=<Signin /> />
           <Route path="/dashboard" element=<Dashboard /> />
           <Route path="/send" element=<SendMoney /> />
-          <Route path="/" element=<AppBar /> />
+          <Route path="/" element=<Balance balance={"10000"} /> />
         </Routes>
       </BrowserRouter>
     </>
